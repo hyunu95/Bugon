@@ -6,15 +6,15 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class GoogleUserInfo {
-
+public class OAuthUserInfo {
 	private final String email;
 	private final String nickname;
 	private final String profileImageUrl;
 	private final String providerId;
+	private final ProviderType providerType;
 
 	public ProviderType getProviderType() {
-		return ProviderType.GOOGLE;
+		return providerType;
 	}
 
 	public String getProviderUniqueKey() {
