@@ -45,4 +45,7 @@ oauth:
     client-id: client-id
     redirect-uri: http://localhost:8080/api/v1/oauth/kakao/callback
 
-
+  github:
+    client-id: Ov23liZzATwic5ScP2Gy
+    client-secret: b66af9b360eabde18a918b006892aed9cf2d830e
+    redirect-uri: http://localhost:8080/api/v1/oauth/github/callback
