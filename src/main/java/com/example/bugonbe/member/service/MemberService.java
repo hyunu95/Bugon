@@ -1,17 +1,15 @@
 package com.example.bugonbe.member.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.example.bugonbe.auth.client.GoogleUserInfo;
+import com.example.bugonbe.auth.client.OAuthUserInfo;
 import com.example.bugonbe.common.exception.BugonNotFoundException;
 import com.example.bugonbe.common.exception.BugonUnauthorizedException;
+import com.example.bugonbe.common.exception.BugonConflictException;
 import com.example.bugonbe.member.domain.AuthProvider;
 import com.example.bugonbe.member.domain.Member;
-import com.example.bugonbe.member.domain.ProviderType;
 import com.example.bugonbe.member.repository.MemberRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,10 +30,14 @@ public class MemberService {
 	}
 
 	@Transactional
-	public Member registerOrLogin(GoogleUserInfo userInfo) {
-		return memberRepository.findByAuthProviderProviderTypeAndAuthProviderProviderId(
-				userInfo.getProviderType(),
-				userInfo.getProviderId())
+	public Member registerOrLogin(OAuthUserInfo userInfo) {
+		return memberRepository.findByEmail(userInfo.getEmail())
+			.map(existing -> {
+				if (!existing.getAuthProvider().getProviderType().equals(userInfo.getProviderType())) {
+					throw new BugonConflictException("이미 다른 소셜 로그인으로 가입된 이메일입니다.");
+				}
+				return existing;
+			})
 			.orElseGet(() -> {
 				Member member = new Member(
 					userInfo.getNickname(),

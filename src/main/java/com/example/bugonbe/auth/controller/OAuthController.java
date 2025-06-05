@@ -16,16 +16,17 @@ public class OAuthController {
 
 	private final OAuthService oAuthService;
 
-	@GetMapping("/google/callback")
-	public ResponseEntity<TokenResponse> googleCallback(
+	@GetMapping("/{provider}/callback")
+	public ResponseEntity<TokenResponse> oauthCallback(
+		@PathVariable String provider,
 		@RequestParam("code") String code,
 		HttpServletResponse response
 	) {
-		TokenResponse tokenResponse = oAuthService.login("google", code);
+		TokenResponse tokenResponse = oAuthService.login(provider, code);
 
 		ResponseCookie cookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
 			.httpOnly(true)
-			.secure(false) // 로컬일 땐 false
+			.secure(false)
 			.path("/")
 			.maxAge(60 * 60 * 24 * 14)
 			.build();

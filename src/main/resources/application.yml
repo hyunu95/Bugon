@@ -8,11 +8,12 @@ spring:
     password: 1234
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 security:
   cors:
@@ -31,12 +32,17 @@ springdoc:
 auth:
   access-key: secretsecretsecretsecretsecretsecretsecretsecret
   refresh-key: secretsecretsecretsecretsecretsecretsecretsecret
-  access-expiration: 7200000 # 2 hours
-  refresh-expiration: 2419200000 # 28 days
+  access-expiration: 7200000
+  refresh-expiration: 2419200000
 
 oauth:
   google:
     client-id: client-id
     client-secret: client-secret
     redirect-uri: http://localhost:8080/api/v1/oauth/google/callback
+
+  kakao:
+    client-id: client-id
+    redirect-uri: http://localhost:8080/api/v1/oauth/kakao/callback
+
 
