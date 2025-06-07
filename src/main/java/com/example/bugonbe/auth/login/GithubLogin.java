@@ -1,6 +1,6 @@
-package com.example.bugonbe.auth.processor;
+package com.example.bugonbe.auth.login;
 
-import com.example.bugonbe.auth.client.GithubApiClient;
+import com.example.bugonbe.auth.client.GithubClient;
 import com.example.bugonbe.auth.client.OAuthUserInfo;
 import com.example.bugonbe.auth.domain.AccessToken;
 import com.example.bugonbe.auth.domain.RefreshToken;
@@ -14,16 +14,16 @@ import org.springframework.stereotype.Component;
 
 @Component("github")
 @RequiredArgsConstructor
-public class GithubOAuthProcessor implements OAuthLoginProcessor {
+public class GithubLogin implements OAuthLogin {
 
-	private final GithubApiClient githubApiClient;
+	private final GithubClient githubClient;
 	private final MemberService memberService;
 	private final MemberRepository memberRepository;
 	private final JwtTokenProvider jwtTokenProvider;
 
 	@Override
 	public TokenResponse login(String code) {
-		OAuthUserInfo userInfo = githubApiClient.getUserInfo(code);
+		OAuthUserInfo userInfo = githubClient.getUserInfo(code);
 
 		Member member = memberService.registerOrLogin(userInfo);
 

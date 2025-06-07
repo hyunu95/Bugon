@@ -1,7 +1,7 @@
-package com.example.bugonbe.auth.processor;
+package com.example.bugonbe.auth.login;
 
 import com.example.bugonbe.auth.dto.TokenResponse;
 
-public interface OAuthLoginProcessor {
+public interface OAuthLogin {
 	TokenResponse login(String code);
 }
