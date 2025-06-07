@@ -3,19 +3,13 @@ package com.example.bugonbe.auth.client;
 import com.example.bugonbe.member.domain.ProviderType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-@RequiredArgsConstructor
-public class GoogleClient {
-
-	private final RestTemplate restTemplate = new RestTemplate();
-	private final ObjectMapper objectMapper = new ObjectMapper();
+public class GoogleClient extends OAuthBase {
 
 	@Value("${oauth.google.client-id}")
 	private String clientId;
@@ -29,57 +23,31 @@ public class GoogleClient {
 	private static final String TOKEN_URI = "https://oauth2.googleapis.com/token";
 	private static final String USERINFO_URI = "https://www.googleapis.com/oauth2/v2/userinfo";
 
-	public OAuthUserInfo getUserInfo(String code) {
-		String accessToken = requestAccessToken(code);
-		return requestUserInfo(accessToken);
+	public GoogleClient(RestTemplate restTemplate, ObjectMapper objectMapper) {
+		super(restTemplate, objectMapper);
 	}
 
-	private String requestAccessToken(String code) {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+	@Override
+	public OAuthUserInfo getUserInfo(String code) {
+		String accessToken = postForAccessToken(TOKEN_URI, buildBody(code));
+		JsonNode userNode = getJson(USERINFO_URI, accessToken);
 
-		String requestBody = UriComponentsBuilder.newInstance()
-			.queryParam("code", code)
+		return new OAuthUserInfo(
+			userNode.path("email").asText(),
+			userNode.path("name").asText(),
+			userNode.path("picture").asText(),
+			userNode.path("id").asText(),
+			ProviderType.GOOGLE
+		);
+	}
+
+	private String buildBody(String code) {
+		return buildFormEncodedBody(UriComponentsBuilder.newInstance()
 			.queryParam("client_id", clientId)
 			.queryParam("client_secret", clientSecret)
+			.queryParam("code", code)
 			.queryParam("redirect_uri", redirectUri)
 			.queryParam("grant_type", "authorization_code")
-			.build().toUri().getRawQuery();
-
-		HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-		String response = restTemplate.postForObject(TOKEN_URI, request, String.class);
-
-		try {
-			JsonNode root = objectMapper.readTree(response);
-			return root.get("access_token").asText();
-		} catch (Exception e) {
-			throw new RuntimeException("구글 엑세스 토큰 요청 실패", e);
-		}
-	}
-
-	private OAuthUserInfo requestUserInfo(String accessToken) {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(accessToken);
-
-		HttpEntity<Void> request = new HttpEntity<>(headers);
-		String response = restTemplate.exchange(
-			USERINFO_URI,
-			HttpMethod.GET,
-			request,
-			String.class
-		).getBody();
-
-		try {
-			JsonNode node = objectMapper.readTree(response);
-			return new OAuthUserInfo(
-				node.get("email").asText(),
-				node.get("name").asText(),
-				node.get("picture").asText(),
-				node.get("id").asText(),
-				ProviderType.GOOGLE
-			);
-		} catch (Exception e) {
-			throw new RuntimeException("구글 유저 정보 요청 실패", e);
-		}
+		);
 	}
 }
