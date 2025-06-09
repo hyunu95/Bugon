@@ -1,6 +1,7 @@
 package com.example.bugonbe.member.domain;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import com.example.bugonbe.auth.domain.RefreshToken;
 
@@ -53,5 +54,16 @@ public class Member {
 
 	public void updateRefreshToken(RefreshToken refreshToken) {
 		this.refreshToken = refreshToken;
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (!(o instanceof Member member)) return false;
+		return Objects.equals(id, member.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id);
 	}
 }
