@@ -1,40 +1,29 @@
 package com.example.bugonbe.auth.login;
 
-import org.springframework.stereotype.Component;
-
 import com.example.bugonbe.auth.client.GoogleClient;
 import com.example.bugonbe.auth.client.OAuthUserInfo;
-import com.example.bugonbe.auth.domain.AccessToken;
-import com.example.bugonbe.auth.domain.RefreshToken;
-import com.example.bugonbe.auth.dto.TokenResponse;
 import com.example.bugonbe.auth.service.JwtTokenProvider;
-import com.example.bugonbe.member.domain.Member;
 import com.example.bugonbe.member.repository.MemberRepository;
 import com.example.bugonbe.member.service.MemberService;
-
-import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component("google")
-@RequiredArgsConstructor
-public class GoogleLogin implements OAuthLogin {
+public class GoogleLogin extends AbstractOAuthLogin {
 
 	private final GoogleClient googleClient;
-	private final MemberService memberService;
-	private final MemberRepository memberRepository;
-	private final JwtTokenProvider jwtTokenProvider;
+
+	public GoogleLogin(
+		GoogleClient googleClient,
+		MemberService memberService,
+		MemberRepository memberRepository,
+		JwtTokenProvider jwtTokenProvider
+	) {
+		super(memberService, memberRepository, jwtTokenProvider);
+		this.googleClient = googleClient;
+	}
 
 	@Override
-	public TokenResponse login(String code) {
-		OAuthUserInfo userInfo = googleClient.getUserInfo(code);
-
-		Member member = memberService.registerOrLogin(userInfo);
-
-		AccessToken accessToken = jwtTokenProvider.createAccessToken(member.getId());
-		RefreshToken refreshToken = jwtTokenProvider.createRefreshToken();
-
-		member.updateRefreshToken(refreshToken);
-		memberRepository.save(member);
-
-		return new TokenResponse(accessToken.getValue(), refreshToken.getValue());
+	protected OAuthUserInfo getUserInfo(String code) {
+		return googleClient.getUserInfo(code);
 	}
 }
